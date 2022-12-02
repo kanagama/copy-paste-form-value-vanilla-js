@@ -2,13 +2,7 @@
 
 ## 使い方
 
-### copy-paste-form-value.js もしくは copy-paste-form-value.min.js を読み込む
-
-```html
-<script type="text/javascript" src="copy-paste-form-value.min.js"></script>
-```
-
-もしくは
+### js/copy-paste-form-value.min.js を読み込む
 
 ```html
 <script type="text/javascript" src="copy-paste-form-value.min.js"></script>
@@ -62,3 +56,19 @@ clearStorage();
 ```
 
 すればいいかなと思います。（予約完了画面とか）
+
+
+# その他
+
+## 圧縮・難読化
+
+```bash
+npm run uglifyjs
+# js/copy-paste-form-value.min.js が生成される
+```
+
+## jest
+
+```bash
+npm run test
+```

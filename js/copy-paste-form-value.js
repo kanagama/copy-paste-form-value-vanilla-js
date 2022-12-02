@@ -1,15 +1,27 @@
 /**
+ * @license copy-paste-form-value v1.0.1
+ * (c) 2022 k-nagama <k.nagama0632@gmail.com>
+ * License: MIT
+ */
+
+/**
  * form が変更されたら localstorage に保存する
+ *
+ * @returns {bool}
  */
 function formChangeEvent()
 {
   document.querySelector(`form`).addEventListener('change', function() {
     saveForm();
   });
+
+  return true;
 }
 
 /**
  * フォームの値を localStorage に保持
+ *
+ * @returns {bool}
  */
 function saveForm()
 {
@@ -17,22 +29,14 @@ function saveForm()
     return false;
   }
 
-  // フォームデータを取得する
-  let formDatas = {};
-  for (let [key, value,] of getFormData()) {
-    // token、hidden パラメータは含まない
-    if (key.indexOf('token') < 0 || document.getElementsByName(key)[0].type !== 'hidden') {
-      formDatas[key] = value;
-    }
-  }
-
-  localStorage.setItem(getUrlHash(), JSON.stringify(formDatas));
-
+  localStorage.setItem(getUrlHash(), JSON.stringify(getFormData()));
   return true;
 }
 
 /**
  * localStorage からフォームの値を取得
+ *
+ * @returns {bool}
  */
 function loadForm()
 {
@@ -42,7 +46,7 @@ function loadForm()
 
   let storage = localStorage.getItem(getUrlHash());
   if (storage === null) {
-    return;
+    return false;
   }
 
   // 保持していた値を挿入
@@ -50,6 +54,8 @@ function loadForm()
   Object.keys(json).forEach(function (key) {
     setValue(key, json[key]);
   });
+
+  return true;
 }
 
 /**
@@ -57,41 +63,73 @@ function loadForm()
  */
 function existForm()
 {
-  if (document.querySelector(`form`).length <= 0) {
-    console.log("The form doesn't exist.");
-    return false;
-  }
+  let form = document.querySelector(`form`);
 
-  return true;
+  return !(form === null || form.length <= 0);
 }
 
 /**
  * URLハッシュを取得
+ *
+ * @return {string}
  */
 function getUrlHash()
 {
+  if (!window.location.href) {
+    return '';
+  }
+
   return btoa(window.location.href);
 }
 
 /**
  * フォームの値を取得
+ *
+ * @returns {object}
  */
 function getFormData()
 {
-  let form = document.querySelector(`form`);
-  return new FormData(form);
+  if (!existForm()) {
+    return {};
+  }
+
+  let elements = {};
+  document.querySelector(`form`).querySelectorAll(`input, select, textarea`).forEach(function(element) {
+    if (
+      // hidden 不要（かも）
+      (element.getAttribute('type') === 'hidden')
+      ||
+      // submit は不要
+      (element.getAttribute('type') === 'submit')
+      ||
+      // radio でチェック入ってないのは読み込まない
+      (element.getAttribute('type') === 'radio' && element.checked !== true)
+    ) {
+      // continue の意味
+      return;
+    }
+
+    elements[element.getAttribute('name')] = element.value;
+  });
+
+  return elements;
 }
 
 /**
  * localStorage を削除する
+ *
+ * @returns {bool}
  */
 function clearStorage()
 {
   localStorage.clear();
+  return true;
 }
 
 /**
  * input 要素に値を格納する
+ *
+ * @returns {bool}
  */
 function setValue(key, value)
 {
@@ -99,14 +137,30 @@ function setValue(key, value)
   // radio ボタンでなければそのままセット
   if (inputs[0].type !== 'radio') {
     inputs[0].value = value;
-    return;
+    return true;
   }
 
   // radio の場合、value が一致した場合に checked
   for (let input of inputs) {
     if (input.value === value) {
       input.checked = true;
-      return;
+      return true;
     }
   }
+
+  return false;
 }
+
+/**
+ * テスト時にコメントアウト解除
+ */
+// module.exports = {
+//   formChangeEvent,
+//   saveForm,
+//   loadForm,
+//   existForm,
+//   getUrlHash,
+//   getFormData,
+//   setValue,
+//   clearStorage
+// }
