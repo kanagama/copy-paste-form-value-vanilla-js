@@ -1,0 +1,18 @@
+<form>
+  <input type='text' name='firstName' value='kazumacchi' id="firstName">
+  <input type='tel' name='phone' value='09099999999' id="phone">
+  <input type="radio" name="sex" value="male" id="male" checked />
+  <input type="radio" name="sex" value="female" id="female" />
+  <textarea name="note" id="note">note</textarea>
+
+  <input type="hidden" name="hidenHidden" value="0" id="hidenHidden" />
+</form>
+
+<script>
+  const firstName = document.getElementById('firstName');
+
+  // hidden の値を1にするだけ
+  firstName.addEventListener('change', function() {
+    document.getElementById('hidenHidden').value = "1";
+  });
+</script>
