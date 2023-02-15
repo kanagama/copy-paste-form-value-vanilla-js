@@ -1,7 +1,22 @@
 const js = require('../js/copy-paste-form-value.js');
 
 const fs = require('fs')
-const bodyHtml = fs.readFileSync('./html/index.html', {encoding: "utf-8"});
+const bodyHtml = fs.readFileSync('./__testhtml/index.html', {encoding: "utf-8"});
+
+// innerHtml で埋め込んだ js を発火させるための funciton
+//
+// 参考URL
+// https://rb-station.com/blogs/software/javascript-innter-html-script
+window.setInnerHTML = function(elm, html) {
+  elm.innerHTML = html;
+  Array.from(elm.querySelectorAll("script")).forEach( oldScript => {
+    const newScript = document.createElement("script");
+    Array.from(oldScript.attributes)
+      .forEach( attr => newScript.setAttribute(attr.name, attr.value) );
+    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+    oldScript.parentNode.replaceChild(newScript, oldScript);
+  });
+}
 
 /**
  *
@@ -69,16 +84,24 @@ test('saveForm() - 取得した情報がlocalStorageに保持される', () => {
 
   let json = JSON.parse(storage);
   Object.keys(json).forEach(function (key) {
+    // input - text
     if (key === 'firstName') {
       expect(json[key]).toBe('kazumacchi');
       return;
     }
+    // input - tel
     if (key === 'phone') {
       expect(json[key]).toBe('09099999999');
       return;
     }
+    // input - radio
     if (key === 'sex') {
       expect(json[key]).toBe('male');
+      return;
+    }
+    // textarea
+    if (key === 'note') {
+      expect(json[key]).toBe('note');
       return;
     }
 
@@ -137,4 +160,18 @@ test('clearStorage() - localStorageの値がクリアされる', () => {
   js.clearStorage();
 
   expect((js.loadForm())).toBe(false);
+});
+
+/**
+ * dispatch(element) が実行されると、要素の click, change イベントが発火する
+ */
+test('dispatch() - 該当のイベントが発火する', () => {
+
+  // innerHtml で埋め込んだ js は通常実行されないため、実行されるようにする
+  // 該当 function は上の方に記載されています
+  setInnerHTML(document.body, bodyHtml);
+
+  js.dispatch(document.getElementById('firstName'));
+
+  expect(document.getElementById('hidenHidden').value).toBe("1");
 });
